@@ -10,6 +10,7 @@ function App() {
   const [food, setFood] = useState([]);
   const [isPlayerActive, setIsPlayerActive] = useState(true);
   const gameAreaRef = useRef(null);
+  const activePlayerRef = useRef(null);
 
   useEffect(() => {
     socket.on("currentPlayers", (players) => {
@@ -71,6 +72,16 @@ function App() {
     };
   }, [isPlayerActive]);
 
+  useEffect(() => {
+    if (activePlayerRef.current) {
+      activePlayerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
+    }
+  }, [players]);
+
   const handleRestart = () => {
     setIsPlayerActive(true);
     socket.emit("restartPlayer");
@@ -97,6 +108,7 @@ function App() {
         {Object.keys(players).map((playerId) => (
           <div
             key={playerId}
+            ref={playerId === socket.id ? activePlayerRef : null}
             className="player"
             style={{
               left: players[playerId].x - players[playerId].size / 2,
