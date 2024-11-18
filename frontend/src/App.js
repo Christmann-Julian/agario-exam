@@ -7,6 +7,7 @@ const socket = io("http://localhost:3001");
 function App() {
   const [players, setPlayers] = useState({});
   const [food, setFood] = useState([]);
+  const [isPlayerActive, setIsPlayerActive] = useState(true);
   const gameAreaRef = useRef(null);
 
   useEffect(() => {
@@ -31,6 +32,9 @@ function App() {
         delete updatedPlayers[playerId];
         return updatedPlayers;
       });
+      if (playerId === socket.id) {
+        setIsPlayerActive(false);
+      }
     });
 
     socket.on("playerMoved", (player) => {
@@ -45,7 +49,7 @@ function App() {
     });
 
     const handleMouseMove = (event) => {
-      if (gameAreaRef.current) {
+      if (gameAreaRef.current && isPlayerActive) {
         const rect = gameAreaRef.current.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -64,7 +68,12 @@ function App() {
       socket.off("foodUpdate");
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, []);
+  }, [isPlayerActive]);
+
+  const handleRestart = () => {
+    setIsPlayerActive(true);
+    socket.emit("restartPlayer");
+  };
 
   return (
     <div className="App">
@@ -99,6 +108,11 @@ function App() {
           </div>
         ))}
       </div>
+      {!isPlayerActive && (
+        <button className="restart-button" onClick={handleRestart}>
+          Restart
+        </button>
+      )}
     </div>
   );
 }

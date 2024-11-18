@@ -59,19 +59,22 @@ food = generateFood();
 io.on('connection', (socket) => {
   console.log('New player connected:', socket.id);
 
-  players[socket.id] = {
-    x: Math.floor(Math.random() * MAP_WIDTH),
-    y: Math.floor(Math.random() * MAP_HEIGHT),
-    size: PLAYER_SIZE,
-    color: getRandomColor(),
-    name: `Player ${playerCount++}`,
-    targetX: null,
-    targetY: null,
+  const addNewPlayer = () => {
+    players[socket.id] = {
+      x: Math.floor(Math.random() * MAP_WIDTH),
+      y: Math.floor(Math.random() * MAP_HEIGHT),
+      size: PLAYER_SIZE,
+      color: getRandomColor(),
+      name: `Player ${playerCount++}`,
+      targetX: null,
+      targetY: null,
+    };
+    socket.emit('currentPlayers', players);
+    socket.emit('currentFood', food);
+    socket.broadcast.emit('newPlayer', { id: socket.id, ...players[socket.id] });
   };
 
-  socket.emit('currentPlayers', players);
-  socket.emit('currentFood', food);
-  socket.broadcast.emit('newPlayer', { id: socket.id, ...players[socket.id] });
+  addNewPlayer();
 
   socket.on('disconnect', () => {
     console.log('Player disconnected:', socket.id);
@@ -85,6 +88,10 @@ io.on('connection', (socket) => {
       players[socket.id].targetX = mouseData.x;
       players[socket.id].targetY = mouseData.y;
     }
+  });
+
+  socket.on('restartPlayer', () => {
+    addNewPlayer();
   });
 
   setInterval(() => {
