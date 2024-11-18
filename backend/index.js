@@ -2,6 +2,9 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const config = require('./config');
+const { generateFood, checkFoodCollision } = require('./food');
+const { getRandomColor, checkBorderMapCollision } = require('./utils');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,14 +15,12 @@ const io = socketIo(server, {
   }
 });
 
-const PORT = 3001;
+const PORT = config.PORT;
 
-const MAP_WIDTH = 1400;
-const MAP_HEIGHT = 800;
-const FOOD_COUNT = 60;
-const FOOD_SIZE = 10;
-const PLAYER_SIZE = 20;
-const PLAYER_SPEED = 0.8;
+const MAP_WIDTH = config.MAP_WIDTH;
+const MAP_HEIGHT = config.MAP_HEIGHT;
+const PLAYER_SIZE = config.PLAYER_SIZE;
+const PLAYER_SPEED = config.PLAYER_SPEED;
 
 let players = {};
 let food = [];
@@ -27,36 +28,7 @@ let playerCount = 1;
 
 app.use(cors());
 
-const getRandomColor = () => {
-    const lettersHexa = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += lettersHexa[Math.floor(Math.random() * 16)];
-    }
-    return color;
-};
-
-const generateFood = () => {
-  food = [];
-  for (let i = 0; i < FOOD_COUNT; i++) {
-    food.push({
-      x: Math.random() * (MAP_WIDTH - FOOD_SIZE),
-      y: Math.random() * (MAP_HEIGHT - FOOD_SIZE),
-      size: FOOD_SIZE,
-      color: getRandomColor(),
-    });
-  }
-};
-
-const checkCollision = (player, foodItem) => {
-  const distX = player.x + player.size / 2 - (foodItem.x + foodItem.size / 2);
-  const distY = player.y + player.size / 2 - (foodItem.y + foodItem.size / 2);
-  const distance = Math.sqrt(distX * distX + distY * distY);
-
-  return distance < player.size / 2 + foodItem.size / 2;
-};
-
-generateFood();
+food = generateFood();
 
 io.on('connection', (socket) => {
   console.log('New player connected:', socket.id);
@@ -103,21 +75,11 @@ io.on('connection', (socket) => {
           player.y = player.targetY;
         }
 
-        if (player.x < 0) player.x = 0;
-        if (player.y < 0) player.y = 0;
-        if (player.x + player.size > MAP_WIDTH) player.x = MAP_WIDTH - player.size;
-        if (player.y + player.size > MAP_HEIGHT) player.y = MAP_HEIGHT - player.size;
-
-        food = food.filter((foodItem) => {
-          if (checkCollision(player, foodItem)) {
-            player.size += 5;
-            return false;
-          }
-          return true;
-        });
+        checkBorderMapCollision(player);
+        food = checkFoodCollision(player, food);
 
         if (food.length === 0) {
-          generateFood();
+          food = generateFood();
         }
 
         io.emit('playerMoved', { id, ...player });
