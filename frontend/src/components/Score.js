@@ -5,8 +5,8 @@ const Score = ({players}) => {
 
     return (
         <div className="score-board">
-          {sortedPlayers.map((player) => (
-            <div key={player.id} className="score-item">
+          {sortedPlayers.map((player, index) => (
+            <div key={index} className="score-item">
               {player.name} : {player.score} points
             </div>
           ))}
