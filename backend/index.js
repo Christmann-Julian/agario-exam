@@ -30,6 +30,8 @@ app.use(cors());
 
 const checkPlayerCollision = (players) => {
   const playerIds = Object.keys(players);
+  const playersToDelete = [];
+
   for (let i = 0; i < playerIds.length; i++) {
     for (let j = i + 1; j < playerIds.length; j++) {
       const player1 = players[playerIds[i]];
@@ -43,17 +45,21 @@ const checkPlayerCollision = (players) => {
         if (player1.size > player2.size) {
           player1.size += player2.size / 2;
           player1.score += 5;
-          delete players[playerIds[j]];
+          playersToDelete.push(playerIds[j]);
           io.emit('playerDisconnected', playerIds[j]);
         } else if (player2.size > player1.size) {
           player2.size += player1.size / 2;
           player2.score += 5;
-          delete players[playerIds[i]];
+          playersToDelete.push(playerIds[i]);
           io.emit('playerDisconnected', playerIds[i]);
         }
       }
     }
   }
+
+  playersToDelete.forEach(playerId => {
+    delete players[playerId];
+  });
 }
 
 food = generateFood();
