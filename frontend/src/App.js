@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import "./App.css";
 
@@ -7,6 +7,7 @@ const socket = io("http://localhost:3001");
 function App() {
   const [players, setPlayers] = useState({});
   const [food, setFood] = useState([]);
+  const gameAreaRef = useRef(null);
 
   useEffect(() => {
     socket.on("currentPlayers", (players) => {
@@ -44,10 +45,12 @@ function App() {
     });
 
     const handleMouseMove = (event) => {
-      const rect = event.target.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      socket.emit("mouseMovement", { x, y });
+      if (gameAreaRef.current) {
+        const rect = gameAreaRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        socket.emit("mouseMovement", { x, y });
+      }
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -65,7 +68,7 @@ function App() {
 
   return (
     <div className="App">
-      <div className="game-area">
+      <div className="game-area" ref={gameAreaRef}>
         <div className="grid"></div>
         {food.map((foodItem, index) => (
           <div
