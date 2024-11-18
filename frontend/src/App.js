@@ -85,8 +85,8 @@ function App() {
             key={playerId}
             className="player"
             style={{
-              left: players[playerId].x,
-              top: players[playerId].y,
+              left: players[playerId].x - players[playerId].size / 2,
+              top: players[playerId].y - players[playerId].size / 2,
               width: players[playerId].size,
               height: players[playerId].size,
               backgroundColor: players[playerId].color,

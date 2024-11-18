@@ -20,8 +20,8 @@ const generateFood = () => {
 };
 
 const isFoodCollision = (player, foodItem) => {
-  const distX = player.x + player.size / 2 - (foodItem.x + foodItem.size / 2);
-  const distY = player.y + player.size / 2 - (foodItem.y + foodItem.size / 2);
+  const distX = player.x - foodItem.x;
+  const distY = player.y - foodItem.y;
   const distance = Math.sqrt(distX * distX + distY * distY);
 
   return distance < player.size / 2 + foodItem.size / 2;

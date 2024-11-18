@@ -13,10 +13,19 @@ const getRandomColor = () => {
 };
 
 const checkBorderMapCollision = (player) => {
-  if (player.x < 0) player.x = 0;
-  if (player.y < 0) player.y = 0;
-  if (player.x + player.size > MAP_WIDTH) player.x = MAP_WIDTH - player.size;
-  if (player.y + player.size > MAP_HEIGHT) player.y = MAP_HEIGHT - player.size;
+  const radius = player.size / 2;
+
+  if (player.x - radius < 0) {
+    player.x = radius;
+  } else if (player.x + radius > MAP_WIDTH) {
+    player.x = MAP_WIDTH - radius;
+  }
+
+  if (player.y - radius < 0) {
+    player.y = radius;
+  } else if (player.y + radius > MAP_HEIGHT) {
+    player.y = MAP_HEIGHT - radius;
+  }
 };
 
 module.exports = {
