@@ -43,16 +43,14 @@ function App() {
       setFood(food);
     });
 
-    const handleKeyDown = (event) => {
-      const movementData = { x: 0, y: 0 };
-      if (event.key === "ArrowUp") movementData.y = -5;
-      if (event.key === "ArrowDown") movementData.y = 5;
-      if (event.key === "ArrowLeft") movementData.x = -5;
-      if (event.key === "ArrowRight") movementData.x = 5;
-      socket.emit("playerMovement", movementData);
+    const handleMouseMove = (event) => {
+      const rect = event.target.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      socket.emit("mouseMovement", { x, y });
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
       socket.off("currentPlayers");
@@ -61,7 +59,7 @@ function App() {
       socket.off("playerDisconnected");
       socket.off("playerMoved");
       socket.off("foodUpdate");
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 

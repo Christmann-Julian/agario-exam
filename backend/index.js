@@ -19,6 +19,7 @@ const MAP_HEIGHT = 800;
 const FOOD_COUNT = 60;
 const FOOD_SIZE = 10;
 const PLAYER_SIZE = 20;
+const PLAYER_SPEED = 0.8;
 
 let players = {};
 let food = [];
@@ -66,6 +67,8 @@ io.on('connection', (socket) => {
     size: PLAYER_SIZE,
     color: getRandomColor(),
     name: `Player ${playerCount++}`,
+    targetX: null,
+    targetY: null,
   };
 
   socket.emit('currentPlayers', players);
@@ -79,26 +82,49 @@ io.on('connection', (socket) => {
     io.emit('playerDisconnected', socket.id);
   });
 
-  socket.on('playerMovement', (movementData) => {
-    let player = players[socket.id];
-    player.x = Math.max(0, Math.min(MAP_WIDTH - player.size, player.x + movementData.x));
-    player.y = Math.max(0, Math.min(MAP_HEIGHT - player.size, player.y + movementData.y));
-
-    food = food.filter((foodItem) => {
-      if (checkCollision(player, foodItem)) {
-        player.size += 5;
-        return false;
-      }
-      return true;
-    });
-
-    if (food.length === 0) {
-      generateFood();
-    }
-
-    io.emit('playerMoved', { id: socket.id, ...player });
-    io.emit('foodUpdate', food);
+  socket.on('mouseMovement', (mouseData) => {
+    players[socket.id].targetX = mouseData.x;
+    players[socket.id].targetY = mouseData.y;
   });
+
+  setInterval(() => {
+    for (let id in players) {
+      let player = players[id];
+      if (player.targetX !== null && player.targetY !== null) {
+        const dx = player.targetX - player.x;
+        const dy = player.targetY - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > PLAYER_SPEED) {
+          player.x += (dx / distance) * PLAYER_SPEED;
+          player.y += (dy / distance) * PLAYER_SPEED;
+        } else {
+          player.x = player.targetX;
+          player.y = player.targetY;
+        }
+
+        if (player.x < 0) player.x = 0;
+        if (player.y < 0) player.y = 0;
+        if (player.x + player.size > MAP_WIDTH) player.x = MAP_WIDTH - player.size;
+        if (player.y + player.size > MAP_HEIGHT) player.y = MAP_HEIGHT - player.size;
+
+        food = food.filter((foodItem) => {
+          if (checkCollision(player, foodItem)) {
+            player.size += 5;
+            return false;
+          }
+          return true;
+        });
+
+        if (food.length === 0) {
+          generateFood();
+        }
+
+        io.emit('playerMoved', { id, ...player });
+        io.emit('foodUpdate', food);
+      }
+    }
+  }, 1000 / 60);
 });
 
 server.listen(PORT, () => {
