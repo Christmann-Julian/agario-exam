@@ -70,3 +70,23 @@ body {
   color: #fff;
   background-color: #ff0000;
 }
+
+.score-board {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 10px 30px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.score-item {
+  margin-bottom: 5px;
+}
+
+.score-item:last-child {
+  margin-bottom: 0;
+}

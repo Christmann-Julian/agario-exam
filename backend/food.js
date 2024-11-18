@@ -31,6 +31,7 @@ const checkFoodCollision = (player, food) => {
   return food.filter((foodItem) => {
     if (isFoodCollision(player, foodItem)) {
       player.size += 5;
+      player.score += 5;
       return false;
     }
     return true;

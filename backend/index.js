@@ -42,10 +42,12 @@ const checkPlayerCollision = (players) => {
       if (distance < (player1.size + player2.size) / 2) {
         if (player1.size > player2.size) {
           player1.size += player2.size / 2;
+          player1.score += 5;
           delete players[playerIds[j]];
           io.emit('playerDisconnected', playerIds[j]);
         } else if (player2.size > player1.size) {
           player2.size += player1.size / 2;
+          player2.score += 5;
           delete players[playerIds[i]];
           io.emit('playerDisconnected', playerIds[i]);
         }
@@ -68,6 +70,7 @@ io.on('connection', (socket) => {
       name: `Player ${playerCount++}`,
       targetX: null,
       targetY: null,
+      score: 0,
     };
     socket.emit('currentPlayers', players);
     socket.emit('currentFood', food);

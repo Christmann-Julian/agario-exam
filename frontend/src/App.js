@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import "./App.css";
+import Score from "./components/Score";
 
 const socket = io("http://localhost:3001");
 
@@ -77,6 +78,7 @@ function App() {
 
   return (
     <div className="App">
+      <Score players={players} />
       <div className="game-area" ref={gameAreaRef}>
         <div className="grid"></div>
         {food.map((foodItem, index) => (
