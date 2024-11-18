@@ -28,6 +28,32 @@ let playerCount = 1;
 
 app.use(cors());
 
+const checkPlayerCollision = (players) => {
+  const playerIds = Object.keys(players);
+  for (let i = 0; i < playerIds.length; i++) {
+    for (let j = i + 1; j < playerIds.length; j++) {
+      const player1 = players[playerIds[i]];
+      const player2 = players[playerIds[j]];
+
+      const dx = player1.x - player2.x;
+      const dy = player1.y - player2.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < (player1.size + player2.size) / 2) {
+        if (player1.size > player2.size) {
+          player1.size += player2.size / 2;
+          delete players[playerIds[j]];
+          io.emit('playerDisconnected', playerIds[j]);
+        } else if (player2.size > player1.size) {
+          player2.size += player1.size / 2;
+          delete players[playerIds[i]];
+          io.emit('playerDisconnected', playerIds[i]);
+        }
+      }
+    }
+  }
+}
+
 food = generateFood();
 
 io.on('connection', (socket) => {
@@ -55,8 +81,10 @@ io.on('connection', (socket) => {
   });
 
   socket.on('mouseMovement', (mouseData) => {
-    players[socket.id].targetX = mouseData.x;
-    players[socket.id].targetY = mouseData.y;
+    if (players[socket.id]) {
+      players[socket.id].targetX = mouseData.x;
+      players[socket.id].targetY = mouseData.y;
+    }
   });
 
   setInterval(() => {
@@ -86,6 +114,7 @@ io.on('connection', (socket) => {
         io.emit('foodUpdate', food);
       }
     }
+    checkPlayerCollision(players);
   }, 1000 / 60);
 });
 
